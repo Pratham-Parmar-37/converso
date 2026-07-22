@@ -2,7 +2,6 @@
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
     TableHead,
     TableHeader,
@@ -12,15 +11,17 @@ import { cn, getSubjectColor } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import UnbookmarkButton from "@/components/UnbookmarkButton";
+import DeleteCompanionButton from "@/components/DeleteCompanionButton";
 
 interface CompanionsListProps {
     title: string;
     companions?: Companion[];
     classNames?: string;
     showUnbookmark?: boolean;
+    showManageActions?: boolean;
 }
 
-const CompanionsList = ({ title, companions, classNames, showUnbookmark }: CompanionsListProps) => {
+const CompanionsList = ({ title, companions, classNames, showUnbookmark, showManageActions }: CompanionsListProps) => {
     return (
         <article className={cn('companion-list', classNames)}>
             <h2 className="font-bold text-3xl">{title}</h2>
@@ -31,12 +32,13 @@ const CompanionsList = ({ title, companions, classNames, showUnbookmark }: Compa
                         <TableHead className="text-lg w-2/3">Lessons</TableHead>
                         <TableHead className="text-lg">Subject</TableHead>
                         <TableHead className="text-lg text-right">Duration</TableHead>
+                        {showManageActions && <TableHead className="text-lg text-right">Manage</TableHead>}
                         {showUnbookmark && <TableHead className="text-lg text-right"></TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {companions?.map(({ id, subject, name, topic, duration }) => (
-                        <TableRow key={id}>
+                    {companions?.map(({ id, subject, name, topic, duration }, index) => (
+                        <TableRow key={id ?? `${name}-${index}`}>
                             <TableCell>
                                 <Link href={`/companions/${id}`}>
                                     <div className="flex items-center gap-2">
@@ -80,6 +82,16 @@ const CompanionsList = ({ title, companions, classNames, showUnbookmark }: Compa
                                     <Image src="/icons/clock.svg" alt="minutes" width={14} height={14} className="md:hidden" />
                                 </div>
                             </TableCell>
+                            {showManageActions && (
+                                <TableCell>
+                                    <div className="flex items-center gap-2 justify-end">
+                                        <Link href={`/companions/${id}/edit`} className="border border-black rounded-md px-3 py-2 text-sm">
+                                            Edit
+                                        </Link>
+                                        <DeleteCompanionButton companionId={id} />
+                                    </div>
+                                </TableCell>
+                            )}
                             {showUnbookmark && (
                                 <TableCell>
                                     <UnbookmarkButton companionId={id} />

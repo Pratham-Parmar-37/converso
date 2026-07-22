@@ -12,15 +12,23 @@ import {
   getBookmarkedCompanions,
 } from "@/lib/actions/companion.actions";
 import Image from "next/image";
+import Link from "next/link";
 import CompanionsList from "@/components/CompanionsList";
+import CleanupDuplicateCompanionsButton from "@/components/CleanupDuplicateCompanionsButton";
 
 const Profile = async () => {
   const user = await currentUser();
 
   if (!user) redirect("/sign-in");
 
-  const companions = await getUserCompanions(user.id);
-  const sessionHistory = await getUserSessions(user.id);
+  const userEmail = user.emailAddresses[0]?.emailAddress;
+  const subscriptionPlan = (user.publicMetadata?.subscriptionPlan as string | undefined) ?? "free";
+  const subscriptionBillingCycle = user.publicMetadata?.subscriptionBillingCycle as string | undefined;
+  const isActiveSubscription = (user.publicMetadata?.subscriptionStatus as string | undefined) === "active";
+  const planLabel = `${subscriptionPlan.toUpperCase()}${subscriptionBillingCycle ? ` (${subscriptionBillingCycle})` : ""}`;
+
+  const companions = await getUserCompanions(user.id, userEmail);
+  const sessionHistory = await getUserSessions(user.id, 10, userEmail);
   const bookmarkedCompanions = await getBookmarkedCompanions(user.id);
 
   return (
@@ -40,6 +48,12 @@ const Profile = async () => {
             <p className="text-sm text-muted-foreground">
               {user.emailAddresses[0].emailAddress}
             </p>
+            <Link href="/subscription" title="Manage subscription">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-300 cursor-pointer">
+                <span>{isActiveSubscription ? "Active Plan" : "Current Plan"}</span>
+                <span className="text-white">{planLabel}</span>
+              </div>
+            </Link>
           </div>
         </div>
         <div className="flex gap-4">
@@ -93,7 +107,10 @@ const Profile = async () => {
             My Companions {`(${companions.length})`}
           </AccordionTrigger>
           <AccordionContent>
-            <CompanionsList title="My Companions" companions={companions} />
+            <div className="flex justify-end mb-4">
+              <CleanupDuplicateCompanionsButton />
+            </div>
+            <CompanionsList title="My Companions" companions={companions} showManageActions />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

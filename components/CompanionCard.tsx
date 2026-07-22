@@ -4,6 +4,7 @@ import { addBookmark } from "@/lib/actions/companion.actions";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import DeleteCompanionButton from "./DeleteCompanionButton";
 
 interface CompanionCardProps {
   id: string;
@@ -13,6 +14,8 @@ interface CompanionCardProps {
   duration: number;
   color: string;
   bookmarked: boolean;
+  author?: string;
+  userId?: string;
 }
 
 const CompanionCard = ({
@@ -23,8 +26,11 @@ const CompanionCard = ({
   duration,
   color,
   bookmarked,
+  author,
+  userId,
 }: CompanionCardProps) => {
   const pathname = usePathname();
+  const canManage = userId && author && userId === author;
   const handleBookmark = async () => {
     if (bookmarked) {
       await removeBookmark(id, pathname);
@@ -33,8 +39,12 @@ const CompanionCard = ({
     }
   };
   return (
-    <article className="companion-card" style={{ backgroundColor: color }}>
-      <div className="flex justify-between items-center">
+    <article className="companion-card group">
+      <div
+        className="absolute top-0 left-0 w-full h-32 opacity-20 blur-2xl pointer-events-none transition-all duration-700 group-hover:opacity-40 group-hover:h-40"
+        style={{ background: `radial-gradient(ellipse at top, ${color}, transparent)` }}
+      />
+      <div className="flex justify-between items-center relative z-10">
         <div className="subject-badge">{subject}</div>
         <button className="companion-bookmark" onClick={handleBookmark}>
           <Image
@@ -48,8 +58,8 @@ const CompanionCard = ({
         </button>
       </div>
 
-      <h2 className="text-2xl font-bold">{name}</h2>
-      <p className="text-sm">{topic}</p>
+      <h2 className="text-2xl font-bold relative z-10">{name}</h2>
+      <p className="text-sm text-gray-300 relative z-10">{topic}</p>
       <div className="flex items-center gap-2">
         <Image
           src="/icons/clock.svg"
@@ -65,6 +75,15 @@ const CompanionCard = ({
           Launch Lesson
         </button>
       </Link>
+
+      {canManage && (
+        <div className="flex items-center gap-2 mt-3">
+          <Link href={`/companions/${id}/edit`} className="border border-black rounded-md px-3 py-2 text-sm flex-1 text-center">
+            Edit
+          </Link>
+          <DeleteCompanionButton companionId={id} />
+        </div>
+      )}
     </article>
   );
 };

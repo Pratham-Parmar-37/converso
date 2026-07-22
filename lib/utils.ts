@@ -50,12 +50,51 @@ export const configureAssistant = (voice: string, style: string) => {
                     Keep your style of conversation {{ style }}.
                     Keep your responses short, like in a real voice conversation.
                     Do not include any special characters in your responses - this is a voice conversation.
+
+                    AI Whiteboard Tool:
+                    You have access to a tool called "render_visual" that displays visual aids on the student's screen.
+                    Use it proactively whenever a concept benefits from a visual explanation. 
+                    For example: diagrams, code snippets, formulas, flowcharts, or key bullet points.
+                    The tool accepts a "type" parameter (one of: "mermaid", "code", "text", "math") and a "content" parameter with the actual content.
+                    - Use type "mermaid" for flowcharts, trees, graphs, class diagrams, sequence diagrams, etc. Use valid Mermaid.js syntax.
+                    - Use type "code" for code snippets. Prefix the first line with the language name followed by a newline (e.g. "python\\nprint('hello')").
+                    - Use type "text" for key points, definitions, summaries, or important notes.
+                    - Use type "math" for mathematical formulas or equations.
+                    Call the tool while you continue speaking - do not wait for it. Do not mention the tool by name to the student, just say something like "Let me show you a diagram" or "Here is the code on your screen".
               `,
         },
       ],
+      tools: [
+        {
+          type: "function" as const,
+          function: {
+            name: "render_visual",
+            description: "Renders a visual aid on the student's whiteboard screen. Use this to show diagrams, code, formulas, or important text. Call this tool proactively whenever a visual would help explain the current concept.",
+            parameters: {
+              type: "object",
+              properties: {
+                type: {
+                  type: "string",
+                  enum: ["mermaid", "code", "text", "math"],
+                  description: "The type of visual to render. 'mermaid' for flowcharts/diagrams using Mermaid.js syntax, 'code' for code snippets (prefix first line with language name), 'text' for key points or definitions, 'math' for mathematical formulas."
+                },
+                content: {
+                  type: "string",
+                  description: "The content to render. For mermaid: valid Mermaid.js diagram syntax. For code: language name on first line then code. For text: the text content. For math: the mathematical expression."
+                },
+                title: {
+                  type: "string",
+                  description: "A short title for the visual aid."
+                }
+              },
+              required: ["type", "content"]
+            }
+          },
+        }
+      ],
     },
-    clientMessages: [],
-    serverMessages: [],
+    clientMessages: [] as any,
+    serverMessages: [] as any,
   };
   return vapiAssistant;
 };

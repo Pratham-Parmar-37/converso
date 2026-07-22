@@ -19,11 +19,16 @@ enum Subject {
 
 type Companion = Models.DocumentList<Models.Document> & {
   $id: string;
+  id?: string;
   name: string;
   subject: Subject;
   topic: string;
   duration: number;
   bookmarked: boolean;
+  author?: string;
+  voice?: string;
+  style?: string;
+  created_at?: string;
 };
 
 interface CreateCompanion {
@@ -79,4 +84,37 @@ interface CompanionComponentProps {
   userImage: string;
   voice: string;
   style: string;
+  duration: number;
+  userPlan?: string;
+}
+
+// ── Skill Tree Types ──────────────────────────────────────────────
+interface SubjectProgress {
+  subject: string;
+  sessionCount: number;
+  level: number;
+  levelName: string;
+  xpCurrent: number;
+  xpNext: number;
+}
+
+interface SkillLevel {
+  level: number;
+  name: string;
+  xpRequired: number;
+  icon: string;
+}
+
+interface SubjectConfig {
+  label: string;
+  color: string;
+  darkColor: string;
+  icon: string;
+}
+
+interface SkillTreeProps {
+  subjectCounts: Record<string, number>;
+  totalSessions: number;
+  userName: string;
+  userImage: string;
 }

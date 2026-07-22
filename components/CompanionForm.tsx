@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -21,41 +20,51 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import {subjects} from "@/constants";
-import {Textarea} from "@/components/ui/textarea";
-import {createCompanion} from "@/lib/actions/companion.actions";
-import {redirect} from "next/navigation";
+import { subjects } from "@/constants";
+import { Textarea } from "@/components/ui/textarea";
+import { createCompanion, updateCompanion } from "@/lib/actions/companion.actions";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-    name: z.string().min(1, { message: 'Companion is required.'}),
-    subject: z.string().min(1, { message: 'Subject is required.'}),
-    topic: z.string().min(1, { message: 'Topic is required.'}),
-    voice: z.string().min(1, { message: 'Voice is required.'}),
-    style: z.string().min(1, { message: 'Style is required.'}),
-    duration: z.coerce.number().min(1, { message: 'Duration is required.'}),
+    name: z.string().min(1, { message: 'Companion is required.' }),
+    subject: z.string().min(1, { message: 'Subject is required.' }),
+    topic: z.string().min(1, { message: 'Topic is required.' }),
+    voice: z.string().min(1, { message: 'Voice is required.' }),
+    style: z.string().min(1, { message: 'Style is required.' }),
+    duration: z.coerce.number().min(1, { message: 'Duration is required.' }),
 })
 
-const CompanionForm = () => {
+interface CompanionFormProps {
+    mode?: 'create' | 'edit';
+    companionId?: string;
+    initialValues?: Partial<z.infer<typeof formSchema>>;
+}
+
+const CompanionForm = ({ mode = 'create', companionId, initialValues }: CompanionFormProps) => {
+    const router = useRouter();
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            name: '',
-            subject: '',
-            topic: '',
-            voice: '',
-            style: '',
-            duration: 15,
+            name: initialValues?.name ?? '',
+            subject: initialValues?.subject ?? '',
+            topic: initialValues?.topic ?? '',
+            voice: initialValues?.voice ?? '',
+            style: initialValues?.style ?? '',
+            duration: initialValues?.duration ?? 15,
         },
     })
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        const companion = await createCompanion(values);
+        const companion = mode === 'edit' && companionId
+            ? await updateCompanion(companionId, values)
+            : await createCompanion(values);
 
-        if(companion) {
-            redirect(`/companions/${companion.id}`);
+        if (companion) {
+            router.push(`/companions/${companion.id}`);
+            router.refresh();
         } else {
-            console.log('Failed to create a companion');
-            redirect('/');
+            console.log(`Failed to ${mode === 'edit' ? 'update' : 'create'} companion`);
         }
     }
 
@@ -210,7 +219,11 @@ const CompanionForm = () => {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full cursor-pointer">Build Your Companion</Button>
+                <Button type="submit" className="w-full cursor-pointer" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting
+                        ? (mode === 'edit' ? 'Saving...' : 'Building...')
+                        : (mode === 'edit' ? 'Save Changes' : 'Build Your Companion')}
+                </Button>
             </form>
         </Form>
     )

@@ -21,7 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider appearance={{ variables: { colorPrimary: "#fe5933" } }}>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body className={`${bricolage.variable} antialiased`}>
           <Navbar />
           {children}
